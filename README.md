@@ -54,6 +54,7 @@ Explain it perfectly. Also Atoms mapings will be used as grammars:
 - [Python](https://raw.githubusercontent.com/atom/language-python/master/grammars/tree-sitter-python.cson)
 
 - installation:
+    - needs to `pip install wheel` before
     - `rm -rf build/ dist/ fork.egg-info/ ; python setup.py sdist bdist_wheel;pip install --root-user-action=ignore dist/fork-0.0.1-py3-none-any.whl --force-reinstall`
 
 ## TODOs

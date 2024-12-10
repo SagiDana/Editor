@@ -1711,9 +1711,11 @@ class Editor():
             pattern = r"((\W+)|(^))(?P<cword>"+pattern+r")\W"
             results = self.get_curr_buffer().search_pattern(pattern)
             if len(results) == 0: return False
-            start_x, start_y, end_x, end_y = results[0]
+            # elog(results[0])
+            # start_x, start_y, end_x, end_y = results[0]
             self.get_curr_window().add_jump()
-            self.get_curr_window().move_cursor_to_buf_location(start_x, start_y)
+            # self.get_curr_window().move_cursor_to_buf_location(start_x, start_y)
+            self.get_curr_window().move_cursor_to_buf_location(results[0].start.x, results[0].start.y)
             self.get_curr_window().add_jump()
             return False
         self.maps[NORMAL][ord('g')][ord('d')] = gd_map
