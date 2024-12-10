@@ -23,10 +23,10 @@
 (call
   function: (attribute attribute: (identifier) @entity.name.function))
 
-(function_definition 
+(function_definition
   name: (identifier) @entity.name.function)
 
-(class_definition 
+(class_definition
   name: (identifier) @entity.name.class)
 
 ; Literals

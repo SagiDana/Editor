@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/home/sagid/.pyenv/versions/3.11.8/bin/python3.11
 
 from string import printable
 import traceback

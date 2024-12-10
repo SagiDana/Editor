@@ -145,7 +145,7 @@ def _index_of_first_nonspace_char(string):
 
 def gd(editor, search):
     try:
-        cmd = [ "/home/s/github/gd/gd",
+        cmd = [ "/home/sagid/Github/gd/gd",
                 "--language", editor.get_curr_buffer().language,
                 "--symbol", search,
                 # "--action", "goto-definition"

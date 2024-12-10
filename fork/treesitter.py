@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+
+
+#!/home/sagid/.pyenv/versions/3.11.8/bin/python3.11
 from .settings import INSTALLATION_PATH
 from .common import Scope
 from .log import elog
