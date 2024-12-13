@@ -21,6 +21,9 @@ import tree_sitter_ruby
 import tree_sitter_rust
 import tree_sitter_c_sharp
 import tree_sitter_json
+import tree_sitter_markdown
+import tree_sitter_zig
+# import tree_sitter_smali
 from os import path
 import traceback
 
@@ -103,97 +106,58 @@ class TreeSitter():
         cls.RUST_LANGUAGE =         Language(tree_sitter_rust.language())
         cls.CSHARP_LANGUAGE =       Language(tree_sitter_c_sharp.language())
         cls.JSON_LANGUAGE =         Language(tree_sitter_json.language())
-        lib_path = path.join(INSTALLATION_PATH,
-                            "ts_parsers/tree-sitter-markdown/tree-sitter-markdown/libtree-sitter-markdown.so")
-        cls.MARKDOWN_LANGUAGE =     load_language(lib_path, 'markdown')
-        lib_path = path.join(INSTALLATION_PATH,
-                            "./ts_parsers/tree-sitter-zig/libtree-sitter-zig.so")
-        cls.ZIG_LANGUAGE =     load_language(lib_path, 'zig')
+        cls.MARKDOWN_LANGUAGE =     Language(tree_sitter_markdown.language())
+        cls.ZIG_LANGUAGE =          Language(tree_sitter_zig.language())
+        # cls.SMALI_LANGUAGE =        Language(tree_sitter_smali.language())
 
     def __init__(self, file_bytes, language):
         self._initialize_language(language)
-        self.language = language
 
         self.tree = self.parser.parse(file_bytes)
         self.captures = None
 
     def _initialize_language(self, language):
-        self.parser = Parser()
-        query_path = path.join(INSTALLATION_PATH, "grammars/{}/highlights.scm")
+        self.language = language
 
         try:
+
             if language == 'python':
                 self._language = TreeSitter.PYTHON_LANGUAGE
-                with open(query_path.format("python"),"r") as f: query = f.read()
-                self.query = TreeSitter.PYTHON_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.PYTHON_LANGUAGE)
             elif language == 'c':
                 self._language = TreeSitter.C_LANGUAGE
-                with open(query_path.format("c"),"r") as f: query = f.read()
-                self.query = TreeSitter.C_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.C_LANGUAGE)
             elif language == 'json':
                 self._language = TreeSitter.JSON_LANGUAGE
-                with open(query_path.format("json"),"r") as f: query = f.read()
-                self.query = TreeSitter.JSON_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.JSON_LANGUAGE)
             elif language == 'java':
                 self._language = TreeSitter.JAVA_LANGUAGE
-                with open(query_path.format("java"),"r") as f: query = f.read()
-                self.query = TreeSitter.JAVA_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.JAVA_LANGUAGE)
             elif language == 'javascript':
                 self._language = TreeSitter.JAVASCRIPT_LANGUAGE
-                with open(query_path.format("javascript"),"r") as f: query = f.read()
-                self.query = TreeSitter.JAVASCRIPT_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.JAVASCRIPT_LANGUAGE)
             elif language == 'smali':
                 self._language = TreeSitter.SMALI_LANGUAGE
-                with open(query_path.format("smali"),"r") as f: query = f.read()
-                self.query = TreeSitter.SMALI_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.SMALI_LANGUAGE)
             elif language == 'markdown':
                 self._language = TreeSitter.MARKDOWN_LANGUAGE
-                with open(query_path.format("markdown"),"r") as f: query = f.read()
-                self.query = TreeSitter.MARKDOWN_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.MARKDOWN_LANGUAGE)
             elif language == 'cpp':
                 self._language = TreeSitter.CPP_LANGUAGE
-                with open(query_path.format("cpp"),"r") as f: query = f.read()
-                self.query = TreeSitter.CPP_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.CPP_LANGUAGE)
             elif language == 'rust':
                 self._language = TreeSitter.RUST_LANGUAGE
-                with open(query_path.format("rust"),"r") as f: query = f.read()
-                self.query = TreeSitter.RUST_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.RUST_LANGUAGE)
             elif language == 'go':
                 self._language = TreeSitter.GO_LANGUAGE
-                with open(query_path.format("go"),"r") as f: query = f.read()
-                self.query = TreeSitter.GO_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.GO_LANGUAGE)
             elif language == 'zig':
                 self._language = TreeSitter.ZIG_LANGUAGE
-                with open(query_path.format("zig"),"r") as f: query = f.read()
-                self.query = TreeSitter.ZIG_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.ZIG_LANGUAGE)
             elif language == 'bash':
                 self._language = TreeSitter.BASH_LANGUAGE
-                with open(query_path.format("bash"),"r") as f: query = f.read()
-                self.query = TreeSitter.BASH_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.BASH_LANGUAGE)
             elif language == 'html':
                 self._language = TreeSitter.HTML_LANGUAGE
-                with open(query_path.format("html"),"r") as f: query = f.read()
-                self.query = TreeSitter.HTML_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.HTML_LANGUAGE)
             elif language == 'css':
                 self._language = TreeSitter.CSS_LANGUAGE
-                with open(query_path.format("css"),"r") as f: query = f.read()
-                self.query = TreeSitter.CSS_LANGUAGE.query(query)
-                self.parser.set_language(TreeSitter.CSS_LANGUAGE)
             else:
                 raise Exception("treesitter not support that language.. :(")
+
+            query_path = path.join(INSTALLATION_PATH, "grammars/{}/highlights.scm")
+            with open(query_path.format(self.language),"r") as f:
+                self._query = f.read()
+            self.query = self._language.query(self._query)
+            self.limited_query = self._language.query(self._query)
+            self.parser = Parser(self._language)
         except Exception as e: elog(f"Exception: {e}")
 
     def resync(self, file_bytes):
@@ -215,35 +179,39 @@ class TreeSitter():
     def get_captures(self, node=None, start_point=None, end_point=None):
         if not node: target_node = self.tree.root_node
         else: target_node = node
+        if start_point is not None and end_point is not None:
+            self.limited_query.set_point_range((start_point, end_point))
+            return self.limited_query.captures(target_node)
+        else:
+            return self.query.captures(target_node)
 
-        return list(self.query.captures(target_node,
-                                        start_point=start_point,
-                                        end_point=end_point))
 
     def _get_relevant_nodes(self, node, query, x=None, y=None, most_relevant=False):
         if x is None or y is None:
             captures = query.captures(node)
         else:
-            captures = query.captures(  node,
-                                        start_point=[y-1 if y > 0 else y, 0],
-                                        end_point=[y+1, 0])
 
-        if most_relevant: captures = reversed(captures)
+            query.set_point_range(([y-1 if y > 0 else y, 0], [y+1, 0]))
+            captures = query.captures(node)
 
-        for node, name in captures:
-            if x is None or y is None:
+        # if most_relevant: captures = reversed(captures)
+
+        # for node, name in captures:
+        for scope in captures:
+            for node in captures[scope]:
+                if x is None or y is None:
+                    return node
+
+                start_y = node.start_point[0]
+                start_x = node.start_point[1]
+                end_y = node.end_point[0]
+                end_x = node.end_point[1]
+
+                if start_y > y: continue
+                if end_y < y: continue
+                if start_y == y and start_x > x: continue
+                if end_y == y and end_x < x: continue
                 return node
-
-            start_y = node.start_point[0]
-            start_x = node.start_point[1]
-            end_y = node.end_point[0]
-            end_x = node.end_point[1]
-
-            if start_y > y: continue
-            if end_y < y: continue
-            if start_y == y and start_x > x: continue
-            if end_y == y and end_x < x: continue
-            return node
         return None
 
     def get_inner_if(self, x, y):
@@ -553,75 +521,79 @@ class TreeSitter():
         x += 1
         if self.language == 'python':
             query = self._language.query("(function_definition) @name")
-            methods = query.captures(self.tree.root_node)
-            for method, name in methods:
-                method_x = method.start_point[1]
-                method_y = method.start_point[0]
-                if method_y > y: return method_x, method_y
-            return None
+            captures = query.captures(self.tree.root_node)
+            for scope in captures:
+                for method in captures[scope]:
+                    method_x = method.start_point[1]
+                    method_y = method.start_point[0]
+                    if method_y > y: return method_x, method_y
+            return None, None
         if self.language == 'c':
             query = self._language.query("(function_definition) @name")
-            methods = query.captures(self.tree.root_node)
-            for method, name in methods:
-                method_x = method.start_point[1]
-                method_y = method.start_point[0]
-                if method_y > y: return method_x, method_y
-            return None
-        return None
+            captures = query.captures(self.tree.root_node)
+            for scope in captures:
+                for method in captures[scope]:
+                    method_x = method.start_point[1]
+                    method_y = method.start_point[0]
+                    if method_y > y: return method_x, method_y
+            return None, None
+        return None, None
 
     def get_prev_method(self, x, y):
         x += 1
         if self.language == 'python':
             query = self._language.query("(function_definition) @name")
-            methods = query.captures(self.tree.root_node)
-            for method, name in reversed(methods):
-                method_x = method.start_point[1]
-                method_y = method.start_point[0]
-                if method_y < y: return method_x, method_y
-            return None
+            captures = query.captures(self.tree.root_node)
+            for scope in captures:
+                for method in captures[scope]:
+                    method_x = method.start_point[1]
+                    method_y = method.start_point[0]
+                    if method_y > y: return method_x, method_y
+            return None, None
         if self.language == 'c':
             query = self._language.query("(function_definition) @name")
-            methods = query.captures(self.tree.root_node)
-            for method, name in reversed(methods):
-                method_x = method.start_point[1]
-                method_y = method.start_point[0]
-                if method_y < y: return method_x, method_y
-            return None
-        return None
+            captures = query.captures(self.tree.root_node)
+            for scope in captures:
+                for method in captures[scope]:
+                    method_x = method.start_point[1]
+                    method_y = method.start_point[0]
+                    if method_y > y: return method_x, method_y
+            return None, None
+        return None, None
 
     def get_method_end(self, x, y):
         if self.language == 'python':
             query = self._language.query("(function_definition) @name")
             node = self._get_relevant_nodes(self.tree.root_node, query, x, y, most_relevant=True)
-            if not node: return None
+            if not node: return None, None
             method_x = node.end_point[1]
             method_y = node.end_point[0]
             return method_x, method_y
         if self.language == 'c':
             query = self._language.query("(function_definition) @name")
             node = self._get_relevant_nodes(self.tree.root_node, query, x, y, most_relevant=True)
-            if not node: return None
+            if not node: return None, None
             method_x = node.end_point[1]
             method_y = node.end_point[0]
             return method_x, method_y
-        return None
+        return None, None
 
     def get_method_begin(self, x, y):
         if self.language == 'python':
             query = self._language.query("(function_definition) @name")
             node = self._get_relevant_nodes(self.tree.root_node, query, x, y, most_relevant=True)
-            if not node: return None
+            if not node: return None, None
             method_x = node.start_point[1]
             method_y = node.start_point[0]
             return method_x, method_y
         if self.language == 'c':
             query = self._language.query("(function_definition) @name")
             node = self._get_relevant_nodes(self.tree.root_node, query, x, y, most_relevant=True)
-            if not node: return None
+            if not node: return None, None
             method_x = node.start_point[1]
             method_y = node.start_point[0]
             return method_x, method_y
-        return None
+        return None, None
 
 if __name__ == '__main__':
     Language.build_library(

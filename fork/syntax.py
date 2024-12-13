@@ -46,14 +46,14 @@ def get_syntax_highlights(  treesitter,
                             target_node=None,
                             start_point=None,
                             end_point=None):
-    for c in treesitter.get_captures(   target_node,
+    captures = treesitter.get_captures( target_node,
                                         start_point,
-                                        end_point):
-        node, scope = c[0], c[1]
-
+                                        end_point)
+    for scope in captures:
         style = get_scope_style(scope)
         if not style: continue
-        yield (node, style)
+        for node in captures[scope]:
+            yield (node, style)
 
 
 if __name__ == '__main__':
